@@ -2,11 +2,12 @@
  * File:   main.c
  * Author: jatler
  *
- * Created on April 9, 2018, 8:24 PM
+ * Created on April 24, 2018, 12:11 AM
  */
 
 #include <xc.h>           // processor SFR definitions
 #include <sys/attribs.h>  // __ISR macro
+#include "i2c_hw5.h"
 
 // DEVCFG0
 #pragma config DEBUG = OFF // no debugging, debugger disabled
@@ -43,14 +44,6 @@
 #pragma config FUSBIDIO = ON    // USB pins controlled by USB module
 #pragma config FVBUSONIO = ON    // USB BUSON controlled by USB module
 
-// SPI Chip Select
-#define CS LATAbits.LATA0
-
-// Function Prototypes
-void initSPI1();
-unsigned char SPI1_IO(unsigned char write);
-void setVoltage(char channel, int voltage);
-
 int main() {
 
     __builtin_disable_interrupts();
@@ -71,12 +64,11 @@ int main() {
     TRISBbits.TRISB4 = 1;  // set pushbutton pin (RB4) as input pin
     TRISAbits.TRISA4 = 0;  // set LED pin as output pin
     LATAbits.LATA4 = 1; // set LED output to high
-    initSPI1();
 
     __builtin_enable_interrupts();
     
-    setVoltage(0,512); //test Ch1
-    setVoltage(1,256); //test Ch2
+    initExpander();
+    setGP0();
 
     while(1) {
 	// use _CP0_SET_COUNT(0) and _CP0_GET_COUNT() to test the PIC timing
@@ -95,47 +87,4 @@ int main() {
             }
         }  
     }
-}
-
-unsigned char SPI1_IO(unsigned char write){
-    SPI1BUF = write;
-    while(!SPI1STATbits.SPIRBF) { // wait to receive the byte
-    ;
-    }
-    return SPI1BUF;
-}
-
-
-void initSPI1() {
-    //setup CS pin (A0) as an output
-    TRISAbits.TRISA0 = 0;
-    CS = 1; // initialized high
-    
-    //setup SDO1 pin (A1)
-    RPA1Rbits.RPA1R = 0b0011; // assign SDO1 to A1
-    
-    //setup SDI1 pin (B8)
-    SDI1Rbits.SDI1R = 0b0110; // assign SDI1 to B8
-    
-    //setup SPI1
-    SPI1CON = 0;              // turn off and reset SPI module
-    SPI1BUF;                  // read and clear rx buffer
-    SPI1BRG = 0x1;            // max. baud rate to 12 MHz [SPI1BRG = (48000000/(2*desired)) - 1]
-    SPI1STATbits.SPIROV = 0;  // clear overflow bit
-    SPI1CONbits.CKE = 1;      // data changes when clock from high to low
-    SPI1CONbits.MSTEN = 1;        // master operation
-    SPI1CONbits.ON = 1;       // turn on SPI 1
-    
-}
-
-void setVoltage(char a, int v) {
-
-	unsigned short t = 0;
-	t= a << 15; //a is at the very end of the data transfer
-	t = t | 0b01110000000000000;
-	t = t | ((v&0b1111111111) <<2); //rejecting excessive bits (above 10)
-	CS = 0;
-	SPI1_IO(t>>8);
-    SPI1_IO(t);
-    CS = 1;
 }
