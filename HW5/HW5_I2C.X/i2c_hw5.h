@@ -4,8 +4,8 @@
 #define I2C_HW5_H__
 
 void initExpander(void);
-void setGP0(void);
+void setGP0(char level);
 void setExpander(char pin, char level);
-char getExpander(void);
+unsigned char getExpander(void);
 
 #endif

@@ -1,4 +1,5 @@
 #include <xc.h>
+#include <sys/attribs.h>
 #include "i2c_master_noint.h"
 
 // I2C Master utilities, 400 kHz, using polling rather than interrupts
@@ -8,7 +9,7 @@
 
 void i2c_master_setup(void) {
   I2C2BRG = 0x037;            // I2CBRG = [1/(2*Fsck) - PGD]*Pblck - 2
-                              // look up PGD for your PIC32 - set PGD?
+                              // look up PGD for your PIC32 - 104ns
   I2C2CONbits.ON = 1;         // turn on the I2C2 module
 }
 
@@ -28,6 +29,7 @@ void i2c_master_send(unsigned char byte) { // send a byte to slave
   while(I2C2STATbits.TRSTAT) { ; }  // wait for the transmission to finish
   if(I2C2STATbits.ACKSTAT) {        // if this is high, slave has not acknowledged
     // ("I2C2 Master: failed to receive ACK\r\n");
+    LATAbits.LATA4 = 0; //turn off green LED
   }
 }
 

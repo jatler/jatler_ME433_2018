@@ -32,21 +32,40 @@ void initExpander(void){
     i2c_master_stop();
 }
 
-void setGP0(void){
+void setGP0(char level){
     
     i2c_master_start();
     i2c_master_send(SLAVE_ADDR_WRITE);  // send slave address
     i2c_master_send(0x09);              // send GPIO register
-    i2c_master_send(0b00000001);        // set GP7 to high
+    char gp0 = (0b00000000 | level);
+    i2c_master_send(gp0);               // set GP0
     i2c_master_stop();
     
 }
 void setExpander(char pin, char level){
-
+    
+    unsigned char pin_set = (0b00000000 | (level << pin));
+    
+    i2c_master_start();
+    i2c_master_send(SLAVE_ADDR_WRITE);
+    i2c_master_send(0x09);
+    i2c_master_send(pin_set);
+    i2c_master_stop();    
 }
 
 
-char getExpander(void){
+unsigned char getExpander(void){
+    
+    i2c_master_start();
+    i2c_master_send(SLAVE_ADDR_WRITE);
+    i2c_master_send(0x09);                 //send GPIO to register
+    i2c_master_restart();
+    i2c_master_send(SLAVE_ADDR_READ);
+    unsigned char message = i2c_master_recv();
+    i2c_master_ack(1);
+    i2c_master_stop();
+    
+    return message;
     //OLAT register reads output latches
     //Writing modifies output latches that modify pins as outputs
     //OLAT (ADDR 0x0A)

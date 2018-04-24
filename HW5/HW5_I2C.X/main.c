@@ -64,13 +64,21 @@ int main() {
     TRISBbits.TRISB4 = 1;  // set pushbutton pin (RB4) as input pin
     TRISAbits.TRISA4 = 0;  // set LED pin as output pin
     LATAbits.LATA4 = 1; // set LED output to high
-
+    
     __builtin_enable_interrupts();
     
     initExpander();
-    setGP0();
+    
 
     while(1) {
+        
+        if (!(getExpander() >> 7)) { //if GP7 is low
+            setExpander(0,1); //set GP0 high
+        } else {
+            setExpander(0,0); // set GP0 low
+        }
+            
+    
 	// use _CP0_SET_COUNT(0) and _CP0_GET_COUNT() to test the PIC timing
 	// remember the core timer runs at half the sysclk
         if (PORTBbits.RB4 < 1.0) {  //if button is pressed do nothing
