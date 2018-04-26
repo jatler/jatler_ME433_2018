@@ -7,6 +7,7 @@
 
 #include <xc.h>           // processor SFR definitions
 #include <sys/attribs.h>  // __ISR macro
+#include <math.h>
 
 // DEVCFG0
 #pragma config DEBUG = OFF // no debugging, debugger disabled
@@ -47,7 +48,7 @@
 #define CS LATAbits.LATA0
 
 // Function Prototypes
-void initSPI1();
+void initSPI1(void);
 unsigned char SPI1_IO(unsigned char write);
 void setVoltage(char channel, int voltage);
 
@@ -71,71 +72,71 @@ int main() {
     TRISBbits.TRISB4 = 1;  // set pushbutton pin (RB4) as input pin
     TRISAbits.TRISA4 = 0;  // set LED pin as output pin
     LATAbits.LATA4 = 1; // set LED output to high
-    initSPI1();
-
+    
     __builtin_enable_interrupts();
     
-    setVoltage(0,512); //test Ch1
-    setVoltage(1,256); //test Ch2
-
+    initSPI1();
+    int i = 0;
+    float f = 512; 
+    float g = 256;
+    
     while(1) {
 	// use _CP0_SET_COUNT(0) and _CP0_GET_COUNT() to test the PIC timing
 	// remember the core timer runs at half the sysclk
-        if (PORTBbits.RB4 < 1.0) {  //if button is pressed do nothing
-        } else {
-            LATAbits.LATA4 = 1;  // turn on LED
-            _CP0_SET_COUNT(0);   // reset Core Timer 
-            while (_CP0_GET_COUNT() < 12000){
-                // delay 0.5ms. 12000 = 5e-3*24e6
-            }
-            LATAbits.LATA4 = 0;  // turn off LED
-            _CP0_SET_COUNT(0);   // reset Core Timer
-            while (_CP0_GET_COUNT() < 12000){
-                // delay 0.5 ms
-            }
-        }  
+        _CP0_SET_COUNT(0);  // reset Core Timer
+        f = 512 + 512*sin(i*2*3.1415/500*10);  //10Hz sin wave
+        g = 1024/100*abs((i % 100) - 50); //5Hz triangle wave
+        setVoltage(1,f);
+        setVoltage(0,g);
+        i++;
+        while (_CP0_GET_COUNT() < 48000){
+                // delay 2ms to update 500 times/s. 48000 = 2e-3*24e6
+        }
     }
 }
 
-unsigned char SPI1_IO(unsigned char write){
-    SPI1BUF = write;
-    while(!SPI1STATbits.SPIRBF) { // wait to receive the byte
+unsigned char SPI1IO(unsigned char o) {
+  SPI1BUF = o;
+  while(!SPI1STATbits.SPIRBF) { // wait to receive the byte
     ;
-    }
-    return SPI1BUF;
+  }
+  return SPI1BUF;
 }
 
 
 void initSPI1() {
-    //setup CS pin (A0) as an output
-    TRISAbits.TRISA0 = 0;
-    CS = 1; // initialized high
-    
-    //setup SDO1 pin (A1)
-    RPA1Rbits.RPA1R = 0b0011; // assign SDO1 to A1
-    
-    //setup SDI1 pin (B8)
-    SDI1Rbits.SDI1R = 0b0110; // assign SDI1 to B8
-    
-    //setup SPI1
-    SPI1CON = 0;              // turn off and reset SPI module
-    SPI1BUF;                  // read and clear rx buffer
-    SPI1BRG = 0x1;            // max. baud rate to 12 MHz [SPI1BRG = (48000000/(2*desired)) - 1]
-    SPI1STATbits.SPIROV = 0;  // clear overflow bit
-    SPI1CONbits.CKE = 1;      // data changes when clock from high to low
-    SPI1CONbits.MSTEN = 1;        // master operation
-    SPI1CONbits.ON = 1;       // turn on SPI 1
-    
+
+  TRISAbits.TRISA0 = 0;
+  CS = 1;
+  RPA1Rbits.RPA1R = 0b0011; // assign SDO1 to A1
+  
+  // Master - SPI1, pins are: SDI4(F4), SDO4(F5), SCK4(F13).
+  // we manually control SS4 as a digital output (F12)
+  // since the pic is just starting, we know that spi is off. We rely on defaults here
+
+  // setup spi1
+  SPI1CON = 0;              // turn off the spi module and reset it
+  SPI1BUF;                  // clear the rx buffer by reading from it
+  SPI1BRG = 1000;            // baud rate to 10 MHz [SPI4BRG = (80000000/(2*desired))-1]
+  SPI1STATbits.SPIROV = 0;  // clear the overflow bit
+  SPI1CONbits.CKE = 1;      // data changes when clock goes from hi to lo (since CKP is 0)
+  SPI1CONbits.MSTEN = 1;    // master operation
+  SPI1CONbits.ON = 1;       // turn on spi 1
 }
 
-void setVoltage(char a, int v) {
+void setVoltage(char a, int v){
 
-	unsigned short t = 0;
-	t= a << 15; //a is at the very end of the data transfer
-	t = t | 0b01110000000000000;
-	t = t | ((v&0b1111111111) <<2); //rejecting excessive bits (above 10)
-	CS = 0;
-	SPI1_IO(t>>8);
-    SPI1_IO(t);
-    CS = 1;
+    unsigned short t;
+
+    t = a << 15;
+
+    t = t | 0b0111000000000000;
+
+    t = t | ((v & 0b1111111111) << 2);
+
+                            // send a ram set status command.
+  CS = 0;                   // enable the ram
+  SPI1IO(t>>8);             // ram write status
+  SPI1IO(t&0xFF);           // sequential mode (mode = 0b01), hold disabled (hold = 0)
+  CS = 1;                   // finish the command
 }
