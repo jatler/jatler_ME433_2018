@@ -64,6 +64,9 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // Section: Global Data Definitions
 // *****************************************************************************
 // *****************************************************************************
+#define LENGTH 14  // IMU data collection array length
+unsigned char data[LENGTH]; // IMU data collection array
+float xl_x, xl_y, xl_z;     // IMU acceleration values converted to floats
 
 // *****************************************************************************
 /* Application Data
@@ -140,7 +143,7 @@ void APP_Initialize ( void )
     
     LCD_init();
     LCD_clearScreen(WHITE);
-    initIMU();
+    IMU_init();
     
     // read from WHO_AM_I register
     i2c_master_start();
@@ -188,11 +191,7 @@ void APP_Tasks ( void )
         }
 
         case APP_STATE_SERVICE_TASKS:
-        {
-            unsigned char length = 14;
-            unsigned char data[length];
-            float xl_x, xl_y, xl_z;
-            
+        {   
             if (PORTBbits.RB4 < 1.0) {  //if button is pressed do nothing
             } else {
                 _CP0_SET_COUNT(0);       // reset Core Timer 
@@ -202,7 +201,7 @@ void APP_Tasks ( void )
                     LATAbits.LATA4 = 1;  // turn on 
                 }
 
-                IMU_read_multiple(data, length, 0x20);   // read IMU
+                IMU_read_multiple(data, LENGTH, 0x20);   // read IMU
                 IMU_accelerations(data,&(xl_x),&(xl_y),&(xl_z));  // calculate and print scaled accelerations
                 short bar = 5;  //width of accelerations bar
                 drawAccelerations(xl_x, xl_y, bar, BLUE, RED); //draw accelerations as scaled xy bars

@@ -5,8 +5,10 @@
 #include "ST7735.h"       // LCD functions
 #include "draw_LCD.h"     // custom LCD functions
 #include <stdio.h>        // sprintf
+#include <string.h>
 
-void initIMU(void){
+
+void IMU_init(void){
     //Initialize I2C2
     ANSELBbits.ANSB2 = 0;   // turn off analog input for RB2 (SDA2)
     ANSELBbits.ANSB3 = 0;   // turn off analog input for RB3 (SCL2)
@@ -81,3 +83,28 @@ void IMU_accelerations(unsigned char* data, float* xl_scaled_x, float* xl_scaled
     drawString(10,120,msg,BLUE,WHITE);
 }
 
+void IMU_print_gyro_accel(char* data, char* msg, int index) {
+    
+    short xl_x, xl_y, xl_z, gy_x, gy_y, gy_z;
+
+    // accelerometer data to shorts
+    xl_x = data[9];                   
+    xl_x = (xl_x << 8) | data[8];
+    xl_y = data[11];
+    xl_y = (xl_y << 8) | data[10];
+    xl_z= data[13];
+    xl_z = (xl_z << 8) | data[12];
+
+
+    //gyro data to shorts
+    gy_x = data[3];                   
+    gy_x = (gy_x << 8) | data[2];
+    gy_y = data[5];
+    gy_y = (xl_y << 8) | data[4];
+    gy_z= data[7];
+    gy_z = (xl_z << 8) | data[6];
+
+    sprintf(msg, "%d %d %d %d %d %d %d\n\r", index, xl_x, xl_y, xl_z, gy_x, gy_y, gy_z);
+    //buff += sprintf(msg+buff, "%d", xl_x);
+    // increment the index
+}

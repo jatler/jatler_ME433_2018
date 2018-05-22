@@ -69,13 +69,13 @@ void LCD_data16(unsigned short dat) {
 
 void LCD_init() {
     SPI1_init();
-  int time = 0;
-  LCD_command(ST7735_SWRESET);//software reset
-  time = _CP0_GET_COUNT();
-  while (_CP0_GET_COUNT() < time + 48000000/2/2) {}
+    int time = 0;
+    LCD_command(ST7735_SWRESET);//software reset
+    time = _CP0_GET_COUNT();
+    while (_CP0_GET_COUNT() < time + 48000000/2/2) {}
 
 	LCD_command(ST7735_SLPOUT);//exit sleep
-  time = _CP0_GET_COUNT();
+    time = _CP0_GET_COUNT();
 	while (_CP0_GET_COUNT() < time + 48000000/2/200) {}
 
 	LCD_command(ST7735_FRMCTR1);//Frame Rate Control (In normal mode/Full colors)
