@@ -70,12 +70,16 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 uint8_t APP_MAKE_BUFFER_DMA_READY dataOut[APP_READ_BUFFER_SIZE];
 uint8_t APP_MAKE_BUFFER_DMA_READY readBuffer[APP_READ_BUFFER_SIZE];
-int i,len = 0;      // length and index
+int i,j,len = 0;      // length and index
 int startTime = 0;   // to remember the loop time
 int sampleFrequency = 5;
 int r_state = 0;
-short xl_z;
-int rawData[100];
+unsigned short rawData[100];
+float mafData[100];
+float iirData[100];
+float firData[100];
+
+float xl_x, xl_y, xl_z;
 
 #define IMU_READ_ADDR 0x20              // IMU address to start data read
 #define IMU_READ_LENGTH 14              // IMU data collection array length
@@ -372,7 +376,7 @@ void APP_Initialize(void) {
     __builtin_enable_interrupts();
     
     LCD_init();                  // initialize LCD
-    LCD_clearScreen(BLUE);      // set LCD screen white
+    LCD_clearScreen(WHITE);      // set LCD screen white
     IMU_init();                  // initialize IMU
     
     startTime = _CP0_GET_COUNT();
@@ -439,6 +443,7 @@ void APP_Tasks(void) {
                         THAT WAS SENT FROM THE COMPUTER */
                         if (appData.readBuffer[0] == 'r'){
                             r_state = 1;
+                            i = 0;
                         } else {
                             r_state = 0;
                         }
@@ -492,7 +497,6 @@ void APP_Tasks(void) {
             
             /* IF 'w' WAS RECEIVED, print WHO_AM_I to screen */
             if (appData.readBuffer[0] == 'w'){
-                i = 0;
                 // read from WHO_AM_I register
                 i2c_master_start();
                 i2c_master_send(SLAVE_ADDR_WRITE);
@@ -503,7 +507,7 @@ void APP_Tasks(void) {
                 i2c_master_ack(1);
                 i2c_master_stop();
                 len = sprintf(dataOut, "%d\n\r", whoami);
-                appData.readBuffer[0] = '\0';      // exit w write state
+                appData.readBuffer[0] = '\0';
                 
                 // print to screen
                  USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0,
@@ -514,30 +518,63 @@ void APP_Tasks(void) {
             /* IF 'r' WAS RECEIVED, OUTPUT 100 values of IMU data at 100Hz */
             if (r_state){
                 IMU_read_multiple(data,IMU_READ_LENGTH,IMU_READ_ADDR);
-                IMU_print_gyro_accel(data,msg,i);
+                rawData[i] = IMU_xl_z(data);
                 
-                len = sprintf(dataOut,msg);
+                //Moving Average Filter
+                int mafBuffer = 4; // number of samples to average over
+
+                if (i == 0){ // reset mafData
+                    for (j= 0; j > 100; j++){
+                        mafData[i]=0;
+                    }
+                }
+                for (j = 0; j < mafBuffer; j++){
+                    if (i-j < 0){
+                        mafData[i] += 0; // zero padding for nonexistent past inputs
+                    } else {
+                        mafData[i] += rawData[i-j];
+                    }
+                    mafData[i] = ((float)mafData[i])/mafBuffer;
+                }
                 
-                if (i > 99){
+                //Infinite Impulse Response Filter
+                float a = 0.5;
+                float b = 0.5;
+                if (i == 0){
+                    iirData[i] = (float)rawData[i];
+                } else {
+                    iirData[i] = a*iirData[i-1] + b*rawData[i];
+                }
+                
+                //Finite Impulse Response Filter
+                
+                len = sprintf(dataOut, "%d %d %f %f\r\n", i, rawData[i], mafData[i], iirData[i]);
+                
+                if (i >= 99){
                     i = 0;
                     r_state = 0;
                     appData.readBuffer[0] = '\0';
                 }
-                
+               
                 USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0,
                     &appData.writeTransferHandle,
                     dataOut, len,
                     USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
                 i++;
             }
-            /* ELSE SEND THE NULL CHARACTER */
+            /* ELSE SEND THE NULL CHARACTER
             else {
                 //len = sprintf(dataOut,"%d\n\r", appData.readBuffer[0]);
                 //appData.readBuffer[0] = '\0';
                 USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0,
                         &appData.writeTransferHandle, 0, 1,
                         USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
-            }
+            } */
+            IMU_read_multiple(data, IMU_READ_LENGTH, IMU_READ_ADDR);   // read IMU
+            IMU_accelerations(data,&(xl_x),&(xl_y),&(xl_z));  // calculate and print scaled accelerations
+            short bar = 5;  //width of accelerations bar
+            drawAccelerations(xl_x, xl_y, bar, BLUE, RED); //draw accelerations as scaled xy bars
+            appData.isWriteComplete = true;
             break;
 
         case APP_STATE_WAIT_FOR_WRITE_COMPLETE:

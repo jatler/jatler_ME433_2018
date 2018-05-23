@@ -85,7 +85,7 @@ void IMU_accelerations(unsigned char* data, float* xl_scaled_x, float* xl_scaled
 
 void IMU_print_gyro_accel(char* data, char* msg, int index) {
     
-    short xl_x, xl_y, xl_z, gy_x, gy_y, gy_z;
+    unsigned short xl_x, xl_y, xl_z, gy_x, gy_y, gy_z;
 
     // accelerometer data to shorts
     xl_x = data[9];                   
@@ -110,7 +110,7 @@ void IMU_print_gyro_accel(char* data, char* msg, int index) {
 }
 
 short IMU_xl_z(char* data){
-    short xl_z;
+    unsigned short xl_z;
     xl_z = data[13];
     xl_z = (xl_z << 8) | data[12];
     
