@@ -12,6 +12,6 @@ void IMU_accelerations(unsigned char* data, float* xl_scaled_x, float* xl_scaled
 
 void IMU_print_gyro_accel(char* data, char* msg, int index);
 
-short IMU_xl_z(char* data);
+unsigned int IMU_xl_z(char* data);
 
 #endif

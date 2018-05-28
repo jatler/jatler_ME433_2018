@@ -60,11 +60,11 @@ void IMU_accelerations(unsigned char* data, float* xl_scaled_x, float* xl_scaled
     int y_offset = 2200;  
     
     // accelerometer data to shorts
-    short xl_x = data[9];                   
+    unsigned short xl_x = data[9];                   
     xl_x = (xl_x << 8) | data[8];
-    short xl_y = data[11];
+    unsigned short xl_y = data[11];
     xl_y = (xl_y << 8) | data[10];
-    short xl_z= data[13];
+    unsigned short xl_z= data[13];
     xl_z = (xl_z << 8) | data[12];
     
     //scale to 2g, output floats
@@ -85,7 +85,7 @@ void IMU_accelerations(unsigned char* data, float* xl_scaled_x, float* xl_scaled
 
 void IMU_print_gyro_accel(char* data, char* msg, int index) {
     
-    unsigned short xl_x, xl_y, xl_z, gy_x, gy_y, gy_z;
+    short xl_x, xl_y, xl_z, gy_x, gy_y, gy_z;
 
     // accelerometer data to shorts
     xl_x = data[9];                   
@@ -104,13 +104,15 @@ void IMU_print_gyro_accel(char* data, char* msg, int index) {
     gy_z= data[7];
     gy_z = (xl_z << 8) | data[6];
 
-    sprintf(msg, "%d %d %d %d %d %d %d\n\r", index, xl_x, xl_y, xl_z, gy_x, gy_y, gy_z);
+    //sprintf(msg, "%d %d %d %d %d %d %d\n\r", index, xl_x, xl_y, xl_z, gy_x, gy_y, gy_z);
+    sprintf(msg, "%d %d %d %d\n\r", index, xl_x, xl_y, xl_z);
     //buff += sprintf(msg+buff, "%d", xl_x);
     // increment the index
 }
 
-short IMU_xl_z(char* data){
-    unsigned short xl_z;
+unsigned int IMU_xl_z(char* data){
+    
+    unsigned int xl_z;
     xl_z = data[13];
     xl_z = (xl_z << 8) | data[12];
     

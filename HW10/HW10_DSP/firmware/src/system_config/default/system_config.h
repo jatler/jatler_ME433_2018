@@ -85,7 +85,7 @@ extern "C" {
 #define SYS_CLK_UPLL_BEFORE_DIV2_FREQ       63999984ul
 #define SYS_CLK_CONFIG_PRIMARY_XTAL         8000000ul
 #define SYS_CLK_CONFIG_SECONDARY_XTAL       0ul
-   
+
 /*** Interrupt System Service Configuration ***/
 #define SYS_INT                     true
 
@@ -140,8 +140,8 @@ extern "C" {
 /* EP0 size in bytes */
 #define USB_DEVICE_EP0_BUFFER_SIZE      8 // was 64
 
-/* Enable SOF Events */ 
-#define USB_DEVICE_SOF_EVENT_ENABLE     
+/* Enable SOF Events */
+#define USB_DEVICE_SOF_EVENT_ENABLE
 
 /* Maximum instances of CDC function driver */
 #define USB_DEVICE_CDC_INSTANCES_NUMBER     1
@@ -179,4 +179,3 @@ extern "C" {
 /*******************************************************************************
  End of File
 */
-

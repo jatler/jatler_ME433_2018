@@ -9,7 +9,7 @@
     <Processor dnOrder="1" name="PIC32MX250F128B"/>
     <Board dnOrder="2" name=" "/>
     <ForceOptimization dnOrder="3" flag="true"/>
-    <MergeStrategy dnOrder="4" flag="USER_ALL"/>
+    <MergeStrategy dnOrder="4" flag="OVERWRITE"/>
   </General>
   <Manifest>
     <Files dnOrder="0">
@@ -202,12 +202,12 @@
       <Template dnOrder="0">
         <Name dnOrder="0">sys_ports_static.c</Name>
         <Path dnOrder="1">Source&amp;#160;Files/app/system_config/default/framework/system/ports/src</Path>
-        <Checksum dnOrder="2">C7C5F12B6B72AE16A19616879948123F</Checksum>
+        <Checksum dnOrder="2">4AAD8F9C13EE87EED677C858E9122B61</Checksum>
       </Template>
       <Template dnOrder="1">
         <Name dnOrder="0">system_init.c</Name>
         <Path dnOrder="1">Source&amp;#160;Files/app/system_config/default</Path>
-        <Checksum dnOrder="2">7F27A576D35018167372283642336A78</Checksum>
+        <Checksum dnOrder="2">7CD1924B8F7996EEDA65625ADD9B73A8</Checksum>
       </Template>
       <Template dnOrder="2">
         <Name dnOrder="0">main.c</Name>
@@ -255,7 +255,7 @@
       <Template dnOrder="11">
         <Name dnOrder="0">system_config.h</Name>
         <Path dnOrder="1">Header&amp;#160;Files/app/system_config/default</Path>
-        <Checksum dnOrder="2">88F89F5A2EA2758DA42011757084115B</Checksum>
+        <Checksum dnOrder="2">EDC148F870D9940B9FE481A6B730AB4C</Checksum>
       </Template>
       <Template dnOrder="12">
         <Name dnOrder="0">app.h</Name>

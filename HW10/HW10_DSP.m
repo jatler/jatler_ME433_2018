@@ -1,6 +1,6 @@
 %%Open COM connection
 
-mySerial = serial('/dev/tty.usbmodem1411');
+mySerial = serial('/dev/tty.usbmodem1421');
 fopen(mySerial);
 fprintf(mySerial,'r'); % send 'r' to recieve data
 
@@ -22,14 +22,14 @@ rawData(:) = data(:,2);
 mafData(:) = data(:,3);
 iirData(:) = data(:,4);
 
-sampleRate = 100;
+sampleRate = 50;
 numSamples = 100;
 time = 0:1/sampleRate:numSamples/sampleRate-1/sampleRate;
 
 figure
 hold on
 plot(time,rawData)
-%plot(time,mafData)
+plot(time,mafData)
 %plot(time,iirData)
 %legend('Raw Data', 'MAF', 'IIR');
 xlabel('Time (s)')

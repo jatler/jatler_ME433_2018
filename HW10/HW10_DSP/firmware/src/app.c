@@ -74,7 +74,7 @@ int i,j,len = 0;      // length and index
 int startTime = 0;   // to remember the loop time
 int sampleFrequency = 5;
 int r_state = 0;
-unsigned short rawData[100];
+unsigned int rawData[100];
 float mafData[100];
 float iirData[100];
 float firData[100];
@@ -508,6 +508,7 @@ void APP_Tasks(void) {
                 i2c_master_stop();
                 len = sprintf(dataOut, "%d\n\r", whoami);
                 appData.readBuffer[0] = '\0';
+                r_state = 0;
                 
                 // print to screen
                  USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0,
@@ -548,7 +549,9 @@ void APP_Tasks(void) {
                 
                 //Finite Impulse Response Filter
                 
-                len = sprintf(dataOut, "%d %d %f %f\r\n", i, rawData[i], mafData[i], iirData[i]);
+                IMU_print_gyro_accel(data,msg,i);
+                len = sprintf(dataOut,msg);
+                //len = sprintf(dataOut, "%d %d %f %f\r\n", i, rawData[i], mafData[i], iirData[i]);
                 
                 if (i >= 99){
                     i = 0;
@@ -570,7 +573,7 @@ void APP_Tasks(void) {
                         &appData.writeTransferHandle, 0, 1,
                         USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
             } */
-            IMU_read_multiple(data, IMU_READ_LENGTH, IMU_READ_ADDR);   // read IMU
+            
             IMU_accelerations(data,&(xl_x),&(xl_y),&(xl_z));  // calculate and print scaled accelerations
             short bar = 5;  //width of accelerations bar
             drawAccelerations(xl_x, xl_y, bar, BLUE, RED); //draw accelerations as scaled xy bars
