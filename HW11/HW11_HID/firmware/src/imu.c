@@ -3,6 +3,8 @@
 #include <sys/attribs.h>  // __ISR macro
 #include "imu.h"          // slave addresses
 #include <stdio.h>        // sprintf
+#include "ST7735.h"
+#include "draw_LCD.h"
 
 void initIMU(void){
     //Initialize I2C2
@@ -49,7 +51,7 @@ void IMU_read_multiple(unsigned char* data, int length, unsigned char register_s
     i2c_master_stop();
 }
 
-void IMU_accelerations(unsigned char* data, float* xl_scaled_x, float* xl_scaled_y, float* xl_scaled_z)
+void IMU_accelerations(unsigned char* data)
 {
     //x,y offsets to be close to 0,0 when flat on table
     int x_offset = 150;  
@@ -63,28 +65,26 @@ void IMU_accelerations(unsigned char* data, float* xl_scaled_x, float* xl_scaled
     short xl_z= data[13];
     xl_z = (xl_z << 8) | data[12];
     
-    //scale to 2g, output floats
-    *(xl_scaled_x) = (xl_x - x_offset)/32768.0 * 2; 
-    *(xl_scaled_y) = (xl_y - y_offset)/32768.0 * 2; 
-    *(xl_scaled_z) = (xl_z)/32768.0 * 2;   
     
     char msg[20];
     sprintf(msg, "X: %d ",xl_x);           // print accelerometer data
-    //drawString(10,100,msg,BLUE,WHITE);
+    drawString(10,100,msg,BLUE,WHITE);
 
     sprintf(msg, "Y: %d ",xl_y);
-    //drawString(10,110,msg,BLUE,WHITE);
+    drawString(10,110,msg,BLUE,WHITE);
 
     sprintf(msg, "Z: %d ",xl_z);
-    //drawString(10,120,msg,BLUE,WHITE);
+    drawString(10,120,msg,BLUE,WHITE);
 }
 
 int IMU_mouse_x(unsigned char* data, int scale){
+    
+    int x_mouse;
     short xl_y = data[11];
     xl_y = (xl_y << 8) | data[10];
     
-    int y_offset = 2200;
-    int x_mouse = -(xl_y - y_offset)/scale;
+    int y_offset = 2000; 
+    x_mouse = -(xl_y - y_offset)/scale; //close to zero when flat
     
     return x_mouse;
     
@@ -95,8 +95,8 @@ int IMU_mouse_y(unsigned char* data, int scale){
     short xl_x = data[9];                   
     xl_x = (xl_x << 8) | data[8];
     
-    int x_offset = 150;
-    int y_mouse = -(xl_x-x_offset)/scale;
+    int x_offset = 400;
+    int y_mouse = -(xl_x-x_offset)/scale; //close to zero when flat
     
     return y_mouse;
     

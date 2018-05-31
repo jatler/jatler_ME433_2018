@@ -8,7 +8,7 @@ void initIMU(void);
 
 void IMU_read_multiple(unsigned char* data, int length, unsigned char register_start);
 
-void IMU_accelerations(unsigned char* data, float* xl_scaled_x, float* xl_scaled_y, float* xl_scaled_z);
+void IMU_accelerations(unsigned char* data);
 
 int IMU_mouse_x(unsigned char* data, int scale);
 

@@ -273,14 +273,14 @@ void APP_Initialize(void) {
     appData.hidInstance = 0;
     appData.isMouseReportSendBusy = false;
     
+    TRISAbits.TRISA4 = 0;        // set LED pin as output pin
+    LATAbits.LATA4 = 0;          // set LED output to low
+    
     initIMU();
-    IMU_read_multiple(data,14,0x20);
     
     LCD_init();
-    LCD_clearScreen(CYAN);
-    
-    IMU_accelerations(data, xl_scaled_x, xl_scaled_y, xl_scaled_z);
-    drawAccelerations(0,0,10,RED,BLUE);
+    LCD_clearScreen(GREEN);
+   
 }
 
 /******************************************************************************
@@ -330,25 +330,24 @@ void APP_Tasks(void) {
 
         case APP_STATE_MOUSE_EMULATE:
             
-            // get data at 20Hz
-            if (movement_length > 50) {
-                IMU_read_multiple(data,14,0x20);
-                movement_length = 0;
+            //Toggle LED
+            if (LATAbits.LATA4){
+                LATAbits.LATA4 = 0;
+            } else {
+                LATAbits.LATA4 = 1;
             }
-           
             appData.mouseButton[0] = MOUSE_BUTTON_STATE_RELEASED;
             appData.mouseButton[1] = MOUSE_BUTTON_STATE_RELEASED;
             
+            IMU_read_multiple(data,14,0x20);  //read IMU
+            IMU_accelerations(data);
             if (inc == 10){  //send 0 9/10 times
                 appData.xCoordinate = (int8_t) 0;
                 appData.yCoordinate = (int8_t) 0;
                 inc = 0;
-            } else { //send IMU data
-                IMU_read_multiple(data,14,0x20);
-                IMU_accelerations(data, xl_scaled_x, xl_scaled_y, xl_scaled_z);
-                drawAccelerations(xl_scaled_x,xl_scaled_y,10,RED,BLUE);
-                appData.xCoordinate = (int8_t) IMU_mouse_x(data,700);
-                appData.yCoordinate = (int8_t) IMU_mouse_y(data,500);
+            } else { //send IMU data    
+                appData.xCoordinate = (int8_t) IMU_mouse_x(data,500); //divide raw data by 500
+                appData.yCoordinate = (int8_t) IMU_mouse_y(data,500); //divide raw data by 500
             }
             inc++;
             
