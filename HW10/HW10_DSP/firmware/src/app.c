@@ -1,4 +1,4 @@
-/*******************************************************************************
+ /*******************************************************************************
   MPLAB Harmony Application Source File
 
   Company:
@@ -70,11 +70,13 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 uint8_t APP_MAKE_BUFFER_DMA_READY dataOut[APP_READ_BUFFER_SIZE];
 uint8_t APP_MAKE_BUFFER_DMA_READY readBuffer[APP_READ_BUFFER_SIZE];
+
 int i,j,len = 0;      // length and index
-int startTime = 0;   // to remember the loop time
+int startTime = 0;    // to remember the loop time
 int sampleFrequency = 5;
 int r_state = 0;
-unsigned int rawData[100];
+
+int rawData[100]; //raw data from xl_z
 float mafData[100];
 float iirData[100];
 float firData[100];
@@ -359,21 +361,12 @@ void APP_Initialize(void) {
 
     /* Set up the read buffer */
     appData.readBuffer = &readBuffer[0];
-    appData.readBuffer[0] = '\0';
 
     /* LCD, IMU, AND PIN INITIALIZATIONS */
     
-    __builtin_disable_interrupts();
-    
-    __builtin_mtc0(_CP0_CONFIG, _CP0_CONFIG_SELECT, 0xa4210583); // set the CP0 CONFIG register to indicate that kseg0 is cacheable (0x3)
-    BMXCONbits.BMXWSDRM = 0x0;   // 0 data RAM access wait states
-    INTCONbits.MVEC = 0x1;       // enable multi vector interrupts
-    DDPCONbits.JTAGEN = 0;       // disable JTAG to get pins back
     TRISBbits.TRISB4 = 1;        // set pushbutton pin (RB4) as input pin
     TRISAbits.TRISA4 = 0;        // set LED pin as output pin
     LATAbits.LATA4 = 0;          // set LED output to low
-   
-    __builtin_enable_interrupts();
     
     LCD_init();                  // initialize LCD
     LCD_clearScreen(WHITE);      // set LCD screen white
@@ -441,12 +434,9 @@ void APP_Tasks(void) {
 
                         /* AT THIS POINT, appData.readBuffer[0] CONTAINS A LETTER
                         THAT WAS SENT FROM THE COMPUTER */
-                        if (appData.readBuffer[0] == 'r'){
-                            r_state = 1;
-                            i = 0;
-                        } else {
-                            r_state = 0;
-                        }
+                if (appData.readBuffer[0] == 'r'){
+                    r_state = 1; // set flag
+                }
                         /* YOU COULD PUT AN IF STATEMENT HERE TO DETERMINE WHICH LETTER
                         WAS RECEIVED (USUALLY IT IS THE NULL CHARACTER BECAUSE NOTHING WAS
                       TYPED) */
@@ -497,6 +487,7 @@ void APP_Tasks(void) {
             
             /* IF 'w' WAS RECEIVED, print WHO_AM_I to screen */
             if (appData.readBuffer[0] == 'w'){
+                
                 // read from WHO_AM_I register
                 i2c_master_start();
                 i2c_master_send(SLAVE_ADDR_WRITE);
@@ -522,11 +513,12 @@ void APP_Tasks(void) {
                 rawData[i] = IMU_xl_z(data);
                 
                 //Moving Average Filter
-                int mafBuffer = 4; // number of samples to average over
+                int mafBuffer = 5; // number of samples to average over
 
-                if (i == 0){ // reset mafData
-                    for (j= 0; j > 100; j++){
-                        mafData[i]=0;
+                if (i == 0){ // reset mafData and firData
+                    for (j= 0; j < 100; j++){
+                        mafData[j]=0;
+                        firData[j]=0;
                     }
                 }
                 for (j = 0; j < mafBuffer; j++){
@@ -534,9 +526,9 @@ void APP_Tasks(void) {
                         mafData[i] += 0; // zero padding for nonexistent past inputs
                     } else {
                         mafData[i] += rawData[i-j];
-                    }
-                    mafData[i] = ((float)mafData[i])/mafBuffer;
+                    } 
                 }
+                mafData[i] = ((float)mafData[i])/(mafBuffer);
                 
                 //Infinite Impulse Response Filter
                 float a = 0.5;
@@ -548,12 +540,21 @@ void APP_Tasks(void) {
                 }
                 
                 //Finite Impulse Response Filter
+                float b_fir[6] = { 0.0102, 0.1177, 0.3721, 0.3721, 0.1177, 0.0102 };
                 
-                IMU_print_gyro_accel(data,msg,i);
-                len = sprintf(dataOut,msg);
-                //len = sprintf(dataOut, "%d %d %f %f\r\n", i, rawData[i], mafData[i], iirData[i]);
                 
-                if (i >= 99){
+                for (j = 0; j < 6; j++){
+                    if (i-5+j < 0){
+                        firData[i] += 0; // zero padding for nonexistent past inputs
+                    } else {
+                        firData[i] += rawData[i-5+j]*b_fir[j];
+                    }
+                } 
+
+                len = sprintf(dataOut, "%d %d %f %f %f\r\n", i, rawData[i], mafData[i], iirData[i], firData[i]);
+                i++;
+                
+                if (i > 99){
                     i = 0;
                     r_state = 0;
                     appData.readBuffer[0] = '\0';
@@ -562,9 +563,8 @@ void APP_Tasks(void) {
                 USB_DEVICE_CDC_Write(USB_DEVICE_CDC_INDEX_0,
                     &appData.writeTransferHandle,
                     dataOut, len,
-                    USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
-                i++;
-            }
+                    USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE); 
+            } else {
             /* ELSE SEND THE NULL CHARACTER
             else {
                 //len = sprintf(dataOut,"%d\n\r", appData.readBuffer[0]);
@@ -573,11 +573,12 @@ void APP_Tasks(void) {
                         &appData.writeTransferHandle, 0, 1,
                         USB_DEVICE_CDC_TRANSFER_FLAGS_DATA_COMPLETE);
             } */
-            
-            IMU_accelerations(data,&(xl_x),&(xl_y),&(xl_z));  // calculate and print scaled accelerations
-            short bar = 5;  //width of accelerations bar
-            drawAccelerations(xl_x, xl_y, bar, BLUE, RED); //draw accelerations as scaled xy bars
-            appData.isWriteComplete = true;
+                IMU_read_multiple(data,IMU_READ_LENGTH,IMU_READ_ADDR);
+                IMU_accelerations(data,&(xl_x),&(xl_y),&(xl_z));  // calculate and print scaled accelerations
+                short bar = 5;  //width of accelerations bar
+                drawAccelerations(xl_x, xl_y, bar, BLUE, RED); //draw accelerations as scaled xy bars
+                appData.isWriteComplete = true;
+            }
             break;
 
         case APP_STATE_WAIT_FOR_WRITE_COMPLETE:

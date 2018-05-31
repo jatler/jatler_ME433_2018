@@ -9,7 +9,7 @@
     <Processor dnOrder="1" name="PIC32MX250F128B"/>
     <Board dnOrder="2" name=" "/>
     <ForceOptimization dnOrder="3" flag="true"/>
-    <MergeStrategy dnOrder="4" flag="OVERWRITE"/>
+    <MergeStrategy dnOrder="4" flag="ALL"/>
   </General>
   <Manifest>
     <Files dnOrder="0">
@@ -203,11 +203,13 @@
         <Name dnOrder="0">sys_ports_static.c</Name>
         <Path dnOrder="1">Source&amp;#160;Files/app/system_config/default/framework/system/ports/src</Path>
         <Checksum dnOrder="2">4AAD8F9C13EE87EED677C858E9122B61</Checksum>
+        <ProjectFileChecksum dnOrder="3">F5EE562B3AE2E643B60F85C493E3293B</ProjectFileChecksum>
       </Template>
       <Template dnOrder="1">
         <Name dnOrder="0">system_init.c</Name>
         <Path dnOrder="1">Source&amp;#160;Files/app/system_config/default</Path>
         <Checksum dnOrder="2">7CD1924B8F7996EEDA65625ADD9B73A8</Checksum>
+        <ProjectFileChecksum dnOrder="3">D845409BBF6F273924DA2AAC5122E672</ProjectFileChecksum>
       </Template>
       <Template dnOrder="2">
         <Name dnOrder="0">main.c</Name>
@@ -217,16 +219,19 @@
         <Name dnOrder="0">system_definitions.h</Name>
         <Path dnOrder="1">Header&amp;#160;Files/app/system_config/default</Path>
         <Checksum dnOrder="2">6E0A4B8347808DBA3B404259ACCF4A2E</Checksum>
+        <ProjectFileChecksum dnOrder="3">D1889CC9BE6CF3356B2041E9F1242A6A</ProjectFileChecksum>
       </Template>
       <Template dnOrder="4">
         <Name dnOrder="0">system_exceptions.c</Name>
         <Path dnOrder="1">Source&amp;#160;Files/app/system_config/default</Path>
         <Checksum dnOrder="2">9836A04F3E98D3971DB91DF539160F34</Checksum>
+        <ProjectFileChecksum dnOrder="3">CBD6D911BF5DF4921A6C77900D794814</ProjectFileChecksum>
       </Template>
       <Template dnOrder="5">
         <Name dnOrder="0">sys_devcon.c</Name>
         <Path dnOrder="1">Source&amp;#160;Files/app/system_config/default/framework/system/devcon/src</Path>
         <Checksum dnOrder="2">54ADBD4A35BCA03C42C74182FCE41849</Checksum>
+        <ProjectFileChecksum dnOrder="3">C244FD60B18FC9BAA7BBBF6C6C3284CC</ProjectFileChecksum>
       </Template>
       <Template dnOrder="6">
         <Name dnOrder="0">app.c</Name>
@@ -236,26 +241,31 @@
         <Name dnOrder="0">sys_devcon_local.h</Name>
         <Path dnOrder="1">Header&amp;#160;Files/app/system_config/default/framework/system/devcon/src</Path>
         <Checksum dnOrder="2">B66F9B4DBD85DA7F9DE775E864E01395</Checksum>
+        <ProjectFileChecksum dnOrder="3">1EF5FBBA350693F2EE2A36D472A294D8</ProjectFileChecksum>
       </Template>
       <Template dnOrder="8">
         <Name dnOrder="0">sys_devcon.h</Name>
         <Path dnOrder="1">Header&amp;#160;Files/app/system_config/default/framework/system/devcon</Path>
         <Checksum dnOrder="2">07580DCDEF89D9C79B062544109C5367</Checksum>
+        <ProjectFileChecksum dnOrder="3">D16C5076532AA5B37BC24296148229DB</ProjectFileChecksum>
       </Template>
       <Template dnOrder="9">
         <Name dnOrder="0">system_tasks.c</Name>
         <Path dnOrder="1">Source&amp;#160;Files/app/system_config/default</Path>
         <Checksum dnOrder="2">2EC2B03B54D32D70F57A5C0B92EC31F7</Checksum>
+        <ProjectFileChecksum dnOrder="3">03AACAB89012654B802E54BDED945934</ProjectFileChecksum>
       </Template>
       <Template dnOrder="10">
         <Name dnOrder="0">sys_devcon_pic32mx.c</Name>
         <Path dnOrder="1">Source&amp;#160;Files/app/system_config/default/framework/system/devcon/src</Path>
         <Checksum dnOrder="2">5141464248E33ABE9E7D144A2D4DC129</Checksum>
+        <ProjectFileChecksum dnOrder="3">1F7235B5B5DB23F75024EFCB37367C80</ProjectFileChecksum>
       </Template>
       <Template dnOrder="11">
         <Name dnOrder="0">system_config.h</Name>
         <Path dnOrder="1">Header&amp;#160;Files/app/system_config/default</Path>
         <Checksum dnOrder="2">EDC148F870D9940B9FE481A6B730AB4C</Checksum>
+        <ProjectFileChecksum dnOrder="3">3E8EF8AE46573BD4E070D40CD431F692</ProjectFileChecksum>
       </Template>
       <Template dnOrder="12">
         <Name dnOrder="0">app.h</Name>
@@ -265,11 +275,13 @@
         <Name dnOrder="0">system_interrupt.c</Name>
         <Path dnOrder="1">Source&amp;#160;Files/app/system_config/default</Path>
         <Checksum dnOrder="2">D06EE7D3DB7E47086177F0950BEA0DAE</Checksum>
+        <ProjectFileChecksum dnOrder="3">6917D15D9F990DAAD88CDE298881A721</ProjectFileChecksum>
       </Template>
       <Template dnOrder="14">
         <Name dnOrder="0">sys_clk_pic32mx.c</Name>
         <Path dnOrder="1">Source&amp;#160;Files/app/system_config/default/framework/system/clk/src</Path>
         <Checksum dnOrder="2">9E1735DC00A06796E5D2C1A7FF8668AC</Checksum>
+        <ProjectFileChecksum dnOrder="3">65A615040ABE41BE239A58614FD89E68</ProjectFileChecksum>
       </Template>
     </Templates>
     <CompilerItems dnOrder="2">
