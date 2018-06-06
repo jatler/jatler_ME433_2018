@@ -73,13 +73,13 @@ int main() {
         } else {
             LATAbits.LATA4 = 1;  // turn on LED
             _CP0_SET_COUNT(0);   // reset Core Timer 
-            while (_CP0_GET_COUNT() < 12000){
-                // delay 0.5ms. 12000 = 5e-3*24e6
+            while (_CP0_GET_COUNT() < 12000000){
+                // delay 0.5s. 12000000 = 0.5*24e6
             }
             LATAbits.LATA4 = 0;  // turn off LED
             _CP0_SET_COUNT(0);   // reset Core Timer
-            while (_CP0_GET_COUNT() < 12000){
-                // delay 0.5 ms
+            while (_CP0_GET_COUNT() < 12000000){
+                // delay 0.5 s
             }
         }  
     }
