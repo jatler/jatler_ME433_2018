@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
     int tThresh = 0;            // larger T, higher threshold for brightness
     int COM = 0;                // Center of Mass value to communicate to PIC
     static long prevtime = 0;   // for FPS calculation
+    boolean send = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,11 +108,8 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                myTextView2.setText("value on click is: "+myControl.getProgress());
-                String sendString = String.valueOf(myControl.getProgress()) + '\n';
-                try {
-                    sPort.write(sendString.getBytes(), 10); // 10 is the timeout
-                } catch (IOException e) { }
+                myTextView2.setText("COM start");
+                send = true;
             }
         });
 
@@ -161,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                rThresh = progress;
+                rThresh = 3*progress;
             }
 
             @Override
@@ -178,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                tThresh = progress;
+                tThresh = 3*progress;
             }
 
             @Override
@@ -226,18 +224,27 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
         final Canvas c = mSurfaceHolder.lockCanvas();
         if (c != null) {
             int[] pixels = new int[bmp.getWidth()]; // pixels[] is the RGBA data
-            int row = 200; // which row in the bitmap to analyze to read
+            int[] rgb_pixels = new int[bmp.getWidth()];
+            int row = 100; // which row in the bitmap to analyze to read
             bmp.getPixels(pixels, 0, bmp.getWidth(), 0, row, bmp.getWidth(), 1);
 
             int sum_mr = 0; // the sum of the mass times the radius
             int sum_m = 0; // the sum of the masses
-            // in the row, see where red is
-            for (int i = 0; i < bmp.getWidth(); i++) {
-                if ( (red(pixels[i]) - (green(pixels[i])+blue(pixels[i]))/2) > -rThresh  && ((red(pixels[i]) - (green(pixels[i])+blue(pixels[i]))/2) < rThresh) &&(red(pixels[i])  > tThresh)) {
-                    pixels[i] = rgb(1, 1, 1); // set the pixel to almost 100% black
+            boolean start = false;
+            boolean finish = false;
+            int maf = 5;
+            int rgb_maf = 0;
 
-                    sum_m = sum_m + green(pixels[i])+red(pixels[i])+blue(pixels[i]);
-                    sum_mr = sum_mr + (green(pixels[i])+red(pixels[i])+blue(pixels[i]))*i;
+            // in the row, see where the line starts and ends
+            rgb_pixels[0] = green(pixels[0])+red(pixels[0])+blue(pixels[0]);
+            for (int i = 1; i < bmp.getWidth(); i++) {
+                //if ( (red(pixels[i]) - (green(pixels[i])+blue(pixels[i]))/2) > rThresh  && ((red(pixels[i]) - (green(pixels[i])+blue(pixels[i]))/2) < rThresh) &&(red(pixels[i])  > tThresh)) {
+                rgb_pixels[i] = green(pixels[i]) + red(pixels[i]) + blue(pixels[i]);
+
+                if ( (rgb_pixels[i] < 255*3-tThresh) && ( (red(pixels[i]) > rThresh) || (blue(pixels[i]) > rThresh) || (green(pixels[i]) > rThresh) ) ){
+                    pixels[i] = rgb(1, 1, 1); // set the pixel to almost 100% black
+                    sum_m = sum_m + rgb_pixels[i];
+                    sum_mr = sum_mr + rgb_pixels[i] * i;
                 }
             }
             // update the row image
@@ -253,11 +260,12 @@ public class MainActivity extends AppCompatActivity implements TextureView.Surfa
             comView.setText("COM " + COM);
 
             //Send COM to PIC
-            String sendString = String.valueOf(COM) + '\n';
-            try {
-                sPort.write(sendString.getBytes(), 10); // 10 is the timeout
-            } catch (IOException e) { }
-
+            if (send) {
+                String sendString = String.valueOf(COM) + '\n';
+                try {
+                    sPort.write(sendString.getBytes(), 10); // 10 is the timeout
+                } catch (IOException e) { }
+            }
             /* HW13 Green Code
             for (int row = 0; row < 480; row+=5) { // check every 5 rows
                 bmp.getPixels(pixels, 0, bmp.getWidth(), 0, row, bmp.getWidth(), 1);
